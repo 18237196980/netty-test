@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<form onsubmit="return false">
+    <textarea name="msg" style="width: 200px;height: 200px"></textarea>
+    <input type="button" onclick="sendMsg(this.form.msg.value)" value="发送消息">
+
+    <textarea id="allMsg" style="width: 200px;height: 200px;margin-left: 30px"></textarea>
+    <input type="button" onclick="clearAll()" value="清空消息">
+
+</form>
+
+<script>
+
+    var socket;
+    // 判断当前浏览器是否支持websocket
+    if (window.WebSocket) {
+        socket = new WebSocket('ws://localhost:6668/hello');
+        // 收到服务端回复的消息，相当于服务端的channelRead0
+        socket.onmessage = function (ev) {
+            console.log("浏览器收到服务端回复的消息:" + ev.data);
+            var allMsg = document.getElementById('allMsg');
+            allMsg.value = allMsg.value + ev.data + '\n';
+        }
+
+        // 建立连接
+        socket.onopen = function (ev) {
+            console.log("建立连接...")
+            var allMsg = document.getElementById('allMsg');
+            allMsg.value = allMsg.value + '建立连接...' + '\n';
+        }
+
+        // 连接断开
+        socket.onclose = function (ev) {
+            console.log("连接断开...")
+            var allMsg = document.getElementById('allMsg');
+            allMsg.value = allMsg.value + '连接断开...' + '\n';
+        }
+
+    } else {
+        console.log("不支持websocket")
+    }
+
+
+    // 发送消息到服务器
+    function sendMsg(msg) {
+        console.log("客户端发送的消息:" + msg)
+        // 判断连接是否创建好
+        if (!window.socket) {
+            console.log("连接没创建好")
+            return;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(msg)
+        } else {
+            console.log("连接没有开启")
+        }
+
+
+    }
+
+    function clearAll() {
+        document.getElementById('allMsg').value = '';
+    }
+
+
+</script>
+
+</body>
+</html>
